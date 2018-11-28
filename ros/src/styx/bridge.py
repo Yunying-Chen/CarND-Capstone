@@ -71,6 +71,7 @@ class Bridge(object):
         return light
 
     def create_pose(self, x, y, z, yaw=0.):
+        rospy.loginfo('CURRENT_POSE: creating current pose')
         pose = PoseStamped()
 
         pose.header = Header()

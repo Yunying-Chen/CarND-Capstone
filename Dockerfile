@@ -29,6 +29,8 @@ RUN apt-get install -y ros-$ROS_DISTRO-image-proc
 RUN apt-get install -y netbase
 
 RUN mkdir /capstone
-VOLUME ["/capstone"]
-VOLUME ["/root/.ros/log/"]
+COPY . /capstone
+RUN pip install -r requirements.txt
+RUN echo 'source /capstone/ros/devel/setup.bash' >> ~/.bashrc
+
 WORKDIR /capstone/ros

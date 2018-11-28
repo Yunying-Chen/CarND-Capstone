@@ -1,0 +1,12 @@
+version: '3'
+services:
+  ros:
+#    build: .
+    image: blown302/carnd-capstone
+    volumes:
+      - .:/capstone
+    ports:
+      - 4567:4567
+#    command: bash -c "source devel/setup.bash && roslaunch launch/styx.launch"
+#    command: ./start.sh
+    command: roscore
