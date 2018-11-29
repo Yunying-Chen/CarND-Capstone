@@ -7,3 +7,6 @@ profile.tmp
 
 # jetbrains
 .idea
+
+# virtaulenv
+venv
