@@ -61,19 +61,19 @@ class DBWNode(object):
                                      decel_limit=decel_limit,
                                      accel_limit=accel_limit,
                                      wheel_radius=wheel_radius,
-                                     wheel_base=wheel_base,
+                                     wheel_base=wheel_base,\
                                      steer_ratio=steer_ratio,
                                      max_lat_accel=max_lat_accel,
                                      max_steer_angle=max_steer_angle)
 
         # TODO: Subscribe to all the topics you need to
-        rospy.Subcriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb)
-        rospy.Subcriber('/twist_cmd', TwistStamped, self.twist_cb)
-        rospy.Subcriber('/current_velocity', TwistStamped, self.velocity_cb)
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb)
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
 
         self.current_vel = None
         self.curr_ang_vel = None
-        self.dbw_enabled = None
+        self.dbw_enabled = True
         self.linear_vel = None
         self.angular_vel = None
         self.throttle = self.steering = self.brake = 0
@@ -90,6 +90,10 @@ class DBWNode(object):
                                                                                    self.dbw_enabled,
                                                                                    self.linear_vel,
                                                                                    self.angular_vel)
+
+                # rospy.logwarn('lin: {}'.format(self.linear_vel))
+                # rospy.logwarn('enabled: {}'.format(self.dbw_enabled))
+                rospy.logwarn('throttle: {}'.format(self.throttle))
             if self.dbw_enabled:
                 self.publish(self.throttle, self.brake, self.steering)
             rate.sleep()
@@ -113,13 +117,16 @@ class DBWNode(object):
         self.brake_pub.publish(bcmd)
 
     def dbw_enabled_cb(self, msg):
+        rospy.logwarn('dbw_enabled: {}'.format(msg))
         self.dbw_enabled = msg
 
     def twist_cb(self, msg):
+        # rospy.logwarn('Twist: {}'.format(msg.twist))
         self.linear_vel = msg.twist.linear.x
         self.angular_vel = msg.twist.angular.z
 
     def velocity_cb(self, msg):
+        # rospy.logwarn('Velocity: {}'.format(msg))
         self.current_vel = msg.twist.linear.x
 
 
