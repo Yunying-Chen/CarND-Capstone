@@ -125,7 +125,7 @@ class DBWNode(object):
         rospy.logwarn('Twist lin: {} ang: {}'.format(self.linear_vel, self.angular_vel))
 
     def velocity_cb(self, msg):
-        rospy.logwarn('Velocity: {}'.format(msg))
+        # rospy.logwarn('Velocity: {}'.format(msg))
         self.current_vel = msg.twist.linear.x
 
 
