@@ -10,10 +10,12 @@ from light_classification.tl_classifier import TLClassifier
 import tf
 import cv2
 import yaml
+import numpy as np
 
 STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
+
     def __init__(self):
         rospy.init_node('tl_detector')
 
@@ -22,8 +24,8 @@ class TLDetector(object):
         self.camera_image = None
         self.lights = []
 
-        sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         '''
         /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
@@ -32,8 +34,8 @@ class TLDetector(object):
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
         rely on the position of the light and the camera image to predict it.
         '''
-        sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
+        rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
+        rospy.Subscriber('/image_color', Image, self.image_cb)
 
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
@@ -48,8 +50,12 @@ class TLDetector(object):
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
+        self.final_waypoints = None
 
         rospy.spin()
+
+    def final_waypoints_cb(self, msg):
+        self.final_waypoints = msg
 
     def pose_cb(self, msg):
         self.pose = msg
@@ -100,7 +106,7 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-        #TODO implement
+        # TODO: find a way to get the closest waypoint.
         return 0
 
     def get_light_state(self, light):
@@ -113,14 +119,16 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        if(not self.has_image):
-            self.prev_light_loc = None
-            return False
-
-        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        # TODO: fill out when classifier is setup. use sim state for now.
+        # if(not self.has_image):
+        #     self.prev_light_loc = None
+        #     return False
+        #
+        # cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
         #Get classification
-        return self.light_classifier.get_classification(cv_image)
+        # return self.light_classifier.get_classification(cv_image)
+        return light.state
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
@@ -131,25 +139,17 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        light_waypoint = None
-
+        light_idx = None
+        light = None
         # List of positions that correspond to the line to stop in front of for a given intersection
-        # TODO: Does this always return same value?
-        if(self.pose):
+        if self.pose:
             current_waypoint_idx = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
-            light = self.get_closest_stoplight(current_waypoint_idx)
+            light_idx, light = self.get_closest_stoplight(current_waypoint_idx)
 
-        return light_waypoint, self.get_light_state(cloif light_waypoint >  
-
-        #TODO find the closest visible traffic light (if one exists)
-
-        if light:
-            state = self.get_light_state(light)
-            return light_wp, state
-        self.waypoints = None
-        return -1, TrafficLight.UNKNOWN
+        return light_idx, self.get_light_state(light) if light_idx >= 0 else TrafficLight.UNKNOWN
 
     def get_closest_stoplight(self, current_waypoint_idx):
+        # TODO: Does this always return same value?
         stop_line_positions = self.config['stop_line_positions']
         # start with a high value
         diff = len(self.waypoints.waypoints)
@@ -160,12 +160,13 @@ class TLDetector(object):
             light_coord = stop_line_positions[i]
             test_light_waypoint_idx = self.get_closest_waypoint(light_coord[0], light_coord[1])
             d = test_light_waypoint_idx - current_waypoint_idx
-            if d > 0 and d < diff:
+            if 0 < d < diff:
                 closest_light_waypoint_idx = test_light_waypoint_idx
                 closest_light = light
                 diff = d
 
-        return closest_light_waypoint_idx if closest_light_waypoint_idx else -1, light
+        return closest_light_waypoint_idx if closest_light_waypoint_idx else -1, closest_light
+
 
 if __name__ == '__main__':
     try:
