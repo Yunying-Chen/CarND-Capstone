@@ -90,7 +90,7 @@ class TLDetector(object):
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
 
-    def get_closest_waypoint(self, pose):
+    def get_closest_waypoint(self, x, y):
         """Identifies the closest path waypoint to the given position
             https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
         Args:
@@ -131,12 +131,15 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        light = None
+        light_waypoint = None
 
         # List of positions that correspond to the line to stop in front of for a given intersection
-        stop_line_positions = self.config['stop_line_positions']
+        # TODO: Does this always return same value?
         if(self.pose):
-            car_position = self.get_closest_waypoint(self.pose.pose)
+            current_waypoint_idx = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
+            light = self.get_closest_stoplight(current_waypoint_idx)
+
+        return light_waypoint, self.get_light_state(cloif light_waypoint >  
 
         #TODO find the closest visible traffic light (if one exists)
 
@@ -145,6 +148,24 @@ class TLDetector(object):
             return light_wp, state
         self.waypoints = None
         return -1, TrafficLight.UNKNOWN
+
+    def get_closest_stoplight(self, current_waypoint_idx):
+        stop_line_positions = self.config['stop_line_positions']
+        # start with a high value
+        diff = len(self.waypoints.waypoints)
+        closest_light_waypoint_idx = None
+        closest_light = None
+
+        for i, light in enumerate(self.lights):
+            light_coord = stop_line_positions[i]
+            test_light_waypoint_idx = self.get_closest_waypoint(light_coord[0], light_coord[1])
+            d = test_light_waypoint_idx - current_waypoint_idx
+            if d > 0 and d < diff:
+                closest_light_waypoint_idx = test_light_waypoint_idx
+                closest_light = light
+                diff = d
+
+        return closest_light_waypoint_idx if closest_light_waypoint_idx else -1, light
 
 if __name__ == '__main__':
     try:
