@@ -10,5 +10,5 @@ profile.tmp
 
 # virtaulenv
 venv
-.vscode/settings.json
+.vscode
 data/dbw_test.rosbag.bag

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped
 from styx_msgs.msg import Lane, Waypoint
 from scipy.spatial import KDTree
 import numpy as np
@@ -23,8 +23,8 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
-
+LOOKAHEAD_WPS = 50  # Number of waypoints we will publish. You can change this number
+FREQ_DELAY = .001
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -33,10 +33,14 @@ class WaypointUpdater(object):
         self.pose = None
         self.waypoints_tree = None
 
+        self.waypoint_distance = None
+        self.linear_velocity = 0
+
         rospy.init_node('waypoint_updater', log_level=rospy.DEBUG)
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
 
@@ -53,8 +57,13 @@ class WaypointUpdater(object):
 
     def get_closest_waypoint_idx(self):
         x = self.pose.pose.position.x
-        y = self.pose.pose.position.x
+        y = self.pose.pose.position.y
+
         closest_waypoint_idx = self.waypoints_tree.query([x, y], 1)[1]
+
+        num_of_waypoints_to_avance = int(math.floor(self.linear_velocity * FREQ_DELAY / self.waypoint_distance))
+
+        closest_waypoint_idx += num_of_waypoints_to_avance
 
         closest_coord = self.waypoints_2d[closest_waypoint_idx]
         prev_coord = self.waypoints_2d[closest_waypoint_idx - 1]
@@ -71,8 +80,12 @@ class WaypointUpdater(object):
         return closest_waypoint_idx
 
     def pose_cb(self, msg):
-        rospy.loginfo('got pose!')
+        # rospy.logwarn('got pose!')
         self.pose = msg
+
+    def velocity_cb(self, msg):
+        # rospy.logwarn(msg)
+        self.linear_velocity = msg.twist.linear.x
 
     def waypoints_cb(self, waypoints):
         rospy.loginfo('{}: got base waypoints'.format(self.__class__.__name__))
@@ -81,6 +94,7 @@ class WaypointUpdater(object):
             self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in
                                  waypoints.waypoints]
             self.waypoints_tree = KDTree(self.waypoints_2d)
+            self.waypoint_distance = self.point_distance(self.waypoints_2d[0], self.waypoints_2d[1])
 
     def publish_waypoints(self, closest_waypoint_idx):
         lane = Lane()
@@ -109,6 +123,15 @@ class WaypointUpdater(object):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist
+    
+    def point_distance(self, point1, point2):
+        x1 = point1[0]
+        x2 = point2[0]
+        y1 = point1[1]
+        y2 = point2[1]
+
+        return math.sqrt((x2-x1)**2 + (y2-y1)**2)
+
 
 
 if __name__ == '__main__':
