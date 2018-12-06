@@ -12,3 +12,4 @@ profile.tmp
 venv
 .vscode
 data/dbw_test.rosbag.bag
+images
