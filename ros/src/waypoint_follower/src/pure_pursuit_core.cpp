@@ -249,6 +249,7 @@ bool PurePursuit::verifyFollowing() const
     return false;
   }
 }
+
 geometry_msgs::Twist PurePursuit::calcTwist(double curvature, double cmd_velocity) const
 {
   // verify whether vehicle is following the path
@@ -257,15 +258,9 @@ geometry_msgs::Twist PurePursuit::calcTwist(double curvature, double cmd_velocit
 
   geometry_msgs::Twist twist;
   twist.linear.x = cmd_velocity;
-  if (!following_flag)
-  {
-    //ROS_ERROR_STREAM("Not following");
-    twist.angular.z = current_velocity_.twist.linear.x * curvature;
-  }
-  else
-  {
-    twist.angular.z = prev_angular_velocity;
-  }
+
+  // follow way points all the time
+  twist.angular.z = current_velocity_.twist.linear.x * curvature;
 
   prev_angular_velocity = twist.angular.z;
   return twist;
