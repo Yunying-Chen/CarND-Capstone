@@ -11,6 +11,7 @@ import tf
 import cv2
 import yaml
 import numpy as np
+from scipy.spatial import KDTree
 
 STATE_COUNT_THRESHOLD = 3
 
@@ -51,6 +52,8 @@ class TLDetector(object):
         self.last_wp = -1
         self.state_count = 0
         self.final_waypoints = None
+        self.waypoints_2d = []
+        self.waypoint_tree = None
 
         rospy.spin()
 
@@ -62,6 +65,9 @@ class TLDetector(object):
 
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
+        if not self.waypoints_2d:
+            self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
+            self.waypoint_tree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
@@ -107,7 +113,9 @@ class TLDetector(object):
 
         """
         # TODO: find a way to get the closest waypoint.
-        return 0
+        if self.waypoint_tree:
+            closest_idx = self.waypoint_tree.query([x,y], 1)[1]
+        return closest_idx
 
     def get_light_state(self, light):
         """Determines the current color of the traffic light
@@ -142,7 +150,7 @@ class TLDetector(object):
         light_idx = None
         light = None
         # List of positions that correspond to the line to stop in front of for a given intersection
-        if self.pose:
+        if self.pose and self.waypoint_tree:
             current_waypoint_idx = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
             light_idx, light = self.get_closest_stoplight(current_waypoint_idx)
 
@@ -160,12 +168,15 @@ class TLDetector(object):
             light_coord = stop_line_positions[i]
             test_light_waypoint_idx = self.get_closest_waypoint(light_coord[0], light_coord[1])
             d = test_light_waypoint_idx - current_waypoint_idx
-            if 0 < d < diff:
+            if 0 <= d < diff:
                 closest_light_waypoint_idx = test_light_waypoint_idx
                 closest_light = light
                 diff = d
 
-        return closest_light_waypoint_idx if closest_light_waypoint_idx else -1, closest_light
+        if closest_light_waypoint_idx:
+            return closest_light_waypoint_idx, closest_light 
+        else:
+            return -1, closest_light
 
 
 if __name__ == '__main__':
