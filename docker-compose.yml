@@ -8,5 +8,4 @@ services:
     ports:
       - 4567:4567
 #    command: bash -c "source devel/setup.bash && roslaunch launch/styx.launch"
-#    command: ./start.sh
-    command: roscore
+    command: ./start.sh

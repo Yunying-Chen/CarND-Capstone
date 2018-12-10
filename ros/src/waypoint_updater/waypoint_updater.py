@@ -26,6 +26,7 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 LOOKAHEAD_WPS = 50  # Number of waypoints we will publish. You can change this number
 FREQ_DELAY = .001
 
+
 class WaypointUpdater(object):
     def __init__(self):
         self.base_waypoints = []
