@@ -25,7 +25,7 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 50  # Number of waypoints we will publish. You can change this number
-FREQ_DELAY = .001
+FREQ_DELAY = .01
 MAX_DECEL = 10
 
 class WaypointUpdater(object):
@@ -65,10 +65,6 @@ class WaypointUpdater(object):
 
         closest_waypoint_idx = self.waypoints_tree.query([x, y], 1)[1]
 
-        num_of_waypoints_to_avance = int(math.floor(self.linear_velocity * FREQ_DELAY / self.waypoint_distance))
-
-        closest_waypoint_idx += num_of_waypoints_to_avance
-
         closest_coord = self.waypoints_2d[closest_waypoint_idx]
         prev_coord = self.waypoints_2d[closest_waypoint_idx - 1]
 
@@ -99,7 +95,6 @@ class WaypointUpdater(object):
             self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in
                                  waypoints.waypoints]
             self.waypoints_tree = KDTree(self.waypoints_2d)
-            self.waypoint_distance = self.point_distance(self.waypoints_2d[0], self.waypoints_2d[1])
 
 
     def publish_waypoints(self):
@@ -113,7 +108,6 @@ class WaypointUpdater(object):
         closest_waypoint_idx = self.get_closest_waypoint_idx()
         farthest_idx = closest_waypoint_idx + LOOKAHEAD_WPS
         the_waypoints = self.base_waypoints.waypoints[closest_waypoint_idx: farthest_idx]
-        print("closest_ids:{}, farthest_idx:{}, maximum wps:{}".format(closest_waypoint_idx, farthest_idx, len(self.base_waypoints.waypoints)))
 
         if self.stopline_wp_idx == -1 or (self.stopline_wp_idx >= farthest_idx):
             lane.waypoints = the_waypoints
@@ -132,7 +126,7 @@ class WaypointUpdater(object):
             p.pose = wp.pose
 
             dist = self.distance(waypoints, i, stop_idx)
-            #vel = math.sqrt(2. * MAX_DECEL * dist)
+
             vel = self.linear_velocity * (stop_idx - i)/stop_idx
             if vel < 1.:
                 vel = 0.
@@ -141,6 +135,7 @@ class WaypointUpdater(object):
             temp.append(p)
         
         return temp
+
 
     def traffic_cb(self, msg):
         # Callback for /traffic_waypoint message. Implement
