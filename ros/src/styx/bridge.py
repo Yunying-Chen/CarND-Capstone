@@ -19,6 +19,7 @@ from io import BytesIO
 import base64
 
 import math
+from std_msgs.msg import String
 
 TYPE = {
     'bool': Bool,
@@ -32,7 +33,8 @@ TYPE = {
     'brake_cmd': BrakeCmd,
     'throttle_cmd': ThrottleCmd,
     'path_draw': Lane,
-    'image':Image
+    'image':Image,
+    'string':String
 }
 
 
@@ -49,7 +51,7 @@ class Bridge(object):
             '/vehicle/steering_cmd': self.callback_steering,
             '/vehicle/throttle_cmd': self.callback_throttle,
             '/vehicle/brake_cmd': self.callback_brake,
-        '/final_waypoints': self.callback_path
+            '/final_waypoints': self.callback_path
         }
 
         self.subscribers = [rospy.Subscriber(e.topic, TYPE[e.type], self.callbacks[e.topic])
@@ -177,11 +179,9 @@ class Bridge(object):
 
     def publish_camera(self, data):
         imgString = data["image"]
-        image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
-        image_array = np.asarray(image)
-
-        image_message = self.bridge.cv2_to_imgmsg(image_array, encoding="rgb8")
-        self.publishers['image'].publish(image_message)
+        image_message = String()
+        image_message.data = imgString
+        self.publishers['img_raw'].publish(image_message)
 
     def callback_steering(self, data):
         self.server('steer', data={'steering_angle': str(data.steering_wheel_angle_cmd)})
