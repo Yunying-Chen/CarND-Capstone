@@ -40,7 +40,7 @@ class WaypointUpdater(object):
         self.linear_velocity = 0
         self.stopline_wp_idx = -1
 
-        rospy.init_node('waypoint_updater', log_level=rospy.DEBUG)
+        rospy.init_node('waypoint_updater')
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)

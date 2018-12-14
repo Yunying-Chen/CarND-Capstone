@@ -19,6 +19,7 @@ msgs = []
 dbw_enable = False
 
 enable_obstacle_processing = rospy.get_param('enable_obstacle_processing', False)
+enable_lidar_processing = rospy.get_param('enable_lidar_processing', False)
 
 @sio.on('connect')
 def connect(sid, environ):
@@ -53,7 +54,8 @@ def obstacle(sid, data):
 
 @sio.on('lidar')
 def obstacle(sid, data):
-    bridge.publish_lidar(data)
+    if enable_lidar_processing:
+        bridge.publish_lidar(data)
 
 @sio.on('trafficlights')
 def trafficlights(sid, data):
