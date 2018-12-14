@@ -173,6 +173,7 @@ class Bridge(object):
         header.frame_id = '/world'
         lights.lights = [self.create_light(*e) for e in zip(x, y, z, yaw, status)]
         self.publishers['trafficlights'].publish(lights)
+        # pass
 
     def publish_dbw_status(self, data):
         self.publishers['dbw_status'].publish(Bool(data))

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import eventlet
+import rospy
 eventlet.monkey_patch(socket=True, select=True, time=True)
 
 import eventlet.wsgi
@@ -17,6 +18,8 @@ msgs = []
 
 dbw_enable = False
 
+enable_obstacle_processing = rospy.get_param('enable_obstacle_processing', False)
+
 @sio.on('connect')
 def connect(sid, environ):
     print("connect ", sid)
@@ -28,7 +31,7 @@ def send(topic, data):
 
 bridge = Bridge(conf, send)
 
-@sio.on('telemetry')
+@sio.on('telemetry')    
 def telemetry(sid, data):
     global dbw_enable
     if data["dbw_enable"] != dbw_enable:
@@ -45,7 +48,8 @@ def control(sid, data):
 
 @sio.on('obstacle')
 def obstacle(sid, data):
-    bridge.publish_obstacles(data)
+    if enable_obstacle_processing:
+        bridge.publish_obstacles(data)
 
 @sio.on('lidar')
 def obstacle(sid, data):
