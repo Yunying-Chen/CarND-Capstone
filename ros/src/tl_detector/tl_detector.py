@@ -13,6 +13,9 @@ import cv2
 import yaml
 import numpy as np
 from scipy.spatial import KDTree
+from PIL import Image as PIL_Image
+from io import BytesIO
+import base64
 
 STATE_COUNT_THRESHOLD = 3
 
@@ -25,6 +28,14 @@ class TLDetector(object):
         self.waypoints = None
         self.camera_image = None
         self.lights = []
+
+        self.state = TrafficLight.UNKNOWN
+        self.last_state = TrafficLight.UNKNOWN
+        self.last_wp = -1
+        self.state_count = 0
+        self.final_waypoints = None
+        self.waypoints_2d = []
+        self.waypoint_tree = None
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -47,14 +58,6 @@ class TLDetector(object):
         self.bridge = CvBridge()
         self.light_classifier = TLClassifier()
         self.listener = tf.TransformListener()
-
-        self.state = TrafficLight.UNKNOWN
-        self.last_state = TrafficLight.UNKNOWN
-        self.last_wp = -1
-        self.state_count = 0
-        self.final_waypoints = None
-        self.waypoints_2d = []
-        self.waypoint_tree = None
 
         rospy.spin()
 
@@ -113,7 +116,7 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-        # TODO: find a way to get the closest waypoint.
+        # find a way to get the closest waypoint.
         if self.waypoint_tree:
             closest_idx = self.waypoint_tree.query([x,y], 1)[1]
         return closest_idx
@@ -128,16 +131,14 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        # TODO: fill out when classifier is setup. use sim state for now.
-        # if(not self.has_image):
-        #     self.prev_light_loc = None
-        #     return False
-        #
-        # cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        if(not self.has_image):
+            self.prev_light_loc = None
+            return False
+        
+        image = PIL_Image.open(BytesIO(base64.b64decode(self.camera_image.data)))
 
         #Get classification
-        # return self.light_classifier.get_classification(cv_image)
-        return light.state
+        return self.light_classifier.get_classification(image)
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
