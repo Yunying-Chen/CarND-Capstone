@@ -1,7 +1,6 @@
 from glob import glob
 import json
 import os.path as path
-import matplotlib.pyplot as plt
 import cv2
 import keras
 from keras.applications.mobilenet import MobileNet
@@ -81,12 +80,16 @@ def train():
   
   # print summary of network architecture
   model.summary()
+  from keras.callbacks import EarlyStopping
+  early_stopping = EarlyStopping(monitor='val_loss', patience=3)
+
   history = model.fit_generator(
     train_gen,
     steps_per_epoch=train_steps,  
     epochs=30,verbose=True,
     validation_data=val_gen,
-    validation_steps=val_steps)
+    validation_steps=val_steps,
+    callbacks=[early_stopping])
 
   model_base_name = 'models/mobilenet_sim_model'
   model_name = model_base_name + '.h5'
