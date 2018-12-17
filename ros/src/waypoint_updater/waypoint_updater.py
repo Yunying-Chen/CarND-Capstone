@@ -118,8 +118,9 @@ class WaypointUpdater(object):
         return lane
         
     def decelerate_waypoints(self, waypoints, closest_idx):
-        temp = []
-        stop_idx = max(self.stopline_wp_idx - closest_idx - 6, 0)
+
+        updated_waypoints = []
+        stop_idx = max(self.stopline_wp_idx - closest_idx - 6, 6)
         
         for i, wp in enumerate(waypoints):
 
@@ -128,14 +129,14 @@ class WaypointUpdater(object):
 
             dist = self.distance(waypoints, i, stop_idx)
 
-            vel = self.linear_velocity * (stop_idx - i)/stop_idx
+            vel = self.linear_velocity * (stop_idx - i - 1)/stop_idx
             if vel < 1.:
                 vel = 0.
 
             p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
-            temp.append(p)
-        
-        return temp
+            updated_waypoints.append(p)
+
+        return updated_waypoints
 
 
     def traffic_cb(self, msg):
