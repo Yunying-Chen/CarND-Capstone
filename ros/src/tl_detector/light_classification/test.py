@@ -33,14 +33,14 @@ def test():
 
      t = time.time()
      model = load_model(model_path, custom_objects={'relu6': relu6, 'DepthwiseConv2D': DepthwiseConv2D})  
-     print('load time of H5 model: {}'.format(time.time() - t))
+     print 'load time of H5 model: {}'.format(time.time() - t)
 
      t = time.time()
      with open('models/mobilenet_sim_model.json', 'r') as f:
          json_arch = f.read()
      model = model_from_json(json_arch, custom_objects={'relu6': relu6, 'DepthwiseConv2D': DepthwiseConv2D})
      model.load_weights('models/mobilenet_sim_model.weights')
-     print('load time of json arch model: {}'.format(time.time() - t) )
+     print 'load time of json arch model: {}'.format(time.time() - t)
 
      X,y = get_data()
 
@@ -50,7 +50,7 @@ def test():
      correct = np.where(y==max_index)
      accuracy = np.float32(correct[0].shape[0])/X.shape[0]
 
-     print('Accuracy is: {}'.format(accuracy))
+     print 'Accuracy is: {}'.format(accuracy)
 
 if __name__=='__main__':
    test()
