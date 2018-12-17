@@ -62,7 +62,7 @@ def generator(data_paths, batch_size):
 
 def train():
   paths = get_data()
-  print 'Total samples: ' + str(len(paths))
+  print( 'Total samples: ' + str(len(paths)))
 
 
   train_paths, val_paths = train_test_split(paths, test_size= 0.2)
@@ -70,8 +70,8 @@ def train():
   train_steps = len(train_paths) // BATCH_SIZE
   val_steps = len(val_paths) // BATCH_SIZE
 
-  print 'val steps ' + str(val_steps)
-  print 'train steps ' + str(train_steps)
+  print( 'val steps ' + str(val_steps))
+  print( 'train steps ' + str(train_steps))
 
   train_gen = generator(train_paths, BATCH_SIZE)
   val_gen = generator(val_paths, BATCH_SIZE)
