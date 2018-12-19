@@ -90,7 +90,7 @@ def train():
     epochs=30,verbose=True,
     validation_data=val_gen,
     validation_steps=val_steps,
-    call_backs=[early_stopping])
+    callbacks=[early_stopping])
 
   model_base_name = 'models/mobilenet_sim_model'
   model_name = model_base_name + '.h5'
