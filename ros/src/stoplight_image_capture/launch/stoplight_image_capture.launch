@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-    <node pkg="stoplight_image_capture" type="stoplight_image_capture.py" name="stoplight_image_capture" />
-    <param name="image_dir" value="/capstone/ros/images" type="str" />
-</launch>
