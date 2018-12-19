@@ -19,10 +19,10 @@ class TLClassifier(object):
         print 'loading model: {}'.format(model_name)
 
         t = time.time()
-        with open('../../models/mobilenet_sim_model_v1.json', 'r') as f:
+        with open(model_name + '.json', 'r') as f:
             json_arch = f.read()
         self.model = model_from_json(json_arch, custom_objects={'relu6': relu6, 'DepthwiseConv2D': DepthwiseConv2D})
-        self.model.load_weights('../../models/mobilenet_sim_model_v1.weights')
+        self.model.load_weights(model_name + '.weights')
         print 'load time of json arch model: {}'.format(time.time() - t)
         self.model._make_predict_function()
 
