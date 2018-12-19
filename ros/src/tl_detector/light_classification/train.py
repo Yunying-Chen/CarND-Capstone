@@ -10,7 +10,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from keras.models import Model
-BATCH_SIZE = 32
+BATCH_SIZE = 4
 
 def get_data():
   return glob("./images/**/*.json")
@@ -84,11 +84,11 @@ def train():
   history = model.fit_generator(
     train_gen,
     steps_per_epoch=train_steps,  
-    epochs=15,verbose=True,
+    epochs=30,verbose=True,
     validation_data=val_gen,
     validation_steps=val_steps)
 
-  model_base_name = './mobilenet_sim_model'
+  model_base_name = 'models/mobilenet_sim_model'
   model_name = model_base_name + '.h5'
   model.save(model_name)
 
