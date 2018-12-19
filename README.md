@@ -51,6 +51,6 @@ from the line.
 
 # Team
 
-- Thomas Milas
-- Yunying-Chen
-- Tianzhi Yang
+- Thomas Milas - itpro1994@gmail.com
+- Yunying-Chen - yunyingchen.yc@gmail.com
+- Tianzhi Yang - tianzhi.yang@gmail.com
