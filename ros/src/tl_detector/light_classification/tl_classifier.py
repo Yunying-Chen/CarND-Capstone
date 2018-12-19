@@ -14,10 +14,10 @@ class TLClassifier(object):
     def __init__(self):
         #load classifier
         t = time.time()
-        with open('../../models/mobilenet_sim_model.json', 'r') as f:
+        with open('../../models/mobilenet_sim_model_v1.json', 'r') as f:
             json_arch = f.read()
         self.model = model_from_json(json_arch, custom_objects={'relu6': relu6, 'DepthwiseConv2D': DepthwiseConv2D})
-        self.model.load_weights('../../models/mobilenet_sim_model.weights')
+        self.model.load_weights('../../models/mobilenet_sim_model_v1.weights')
         print 'load time of json arch model: {}'.format(time.time() - t)
         self.model._make_predict_function()
 
@@ -35,6 +35,7 @@ class TLClassifier(object):
         #implement light color prediction
         image = image.resize((224, 224))
         image_array = np.asarray(image)
+        image_array = (image_array - 127.5) / 128.0
         prediction = self.model.predict(image_array[None, ...])
 
         max_index = np.argmax(prediction)
