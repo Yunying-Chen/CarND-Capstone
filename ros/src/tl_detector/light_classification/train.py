@@ -1,6 +1,7 @@
 from glob import glob
 import json
 import os.path as path
+import matplotlib.pyplot as plt
 import cv2
 import keras
 from keras.applications.mobilenet import MobileNet
@@ -9,6 +10,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from keras.models import Model
+from keras.callbacks import EarlyStopping
+
 BATCH_SIZE = 4
 
 def get_data():
@@ -19,7 +22,7 @@ def get_model():
   x = base.output
   x = Dense(1000,name='1000fc',bias_regularizer=keras.regularizers.l2(0.01),activation='relu')(x)
   x = Dropout(0.2,name='Dropout_1')(x)
-  x = Dense(3, activation='softmax')(x)
+  x = Dense(4, activation='softmax')(x)
   model = Model(inputs=[base.input],outputs=[x])
 
   return model
@@ -52,7 +55,7 @@ def generator(data_paths, batch_size):
     
       labels=[]
       for data in y:
-        label = np.zeros(3)
+        label = np.zeros(4)
         label[data['lightState']]=1
         labels.append(label)
       y=np.array(labels)
@@ -80,9 +83,7 @@ def train():
   
   # print summary of network architecture
   model.summary()
-  from keras.callbacks import EarlyStopping
-  early_stopping = EarlyStopping(monitor='val_loss', patience=3)
-
+  early_stopping = EarlyStopping(monitor='val_loss',patience=3)
   history = model.fit_generator(
     train_gen,
     steps_per_epoch=train_steps,  
