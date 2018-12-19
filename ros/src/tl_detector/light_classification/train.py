@@ -10,6 +10,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from keras.models import Model
+from keras.callbacks import EarlyStopping
+
 BATCH_SIZE = 4
 
 def get_data():
@@ -81,12 +83,14 @@ def train():
   
   # print summary of network architecture
   model.summary()
+  early_stopping = EarlyStopping(monitor='val_loss',patience=3)
   history = model.fit_generator(
     train_gen,
     steps_per_epoch=train_steps,  
     epochs=30,verbose=True,
     validation_data=val_gen,
-    validation_steps=val_steps)
+    validation_steps=val_steps,
+    call_backs=[early_stopping])
 
   model_base_name = 'models/mobilenet_sim_model'
   model_name = model_base_name + '.h5'
