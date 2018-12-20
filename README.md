@@ -1,74 +1,56 @@
-This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car. For more information about the project, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
+# Real Self-Driving Car :: System Integration
 
-Please use **one** of the two installation options, either native **or** docker installation.
+This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a 
+Real Self-Driving Car. A system integration project the involves taking multiple ROS nodes and creating
+a complete system and working as a team. This project utilizes waypoint following and traffic light detection to navigate
+environments. One of these environments being the Udacity Self-Driving Car in it's own test lot.
 
-### Native Installation
+## Frameworks Used
 
-* Be sure that your workstation is running Ubuntu 16.04 Xenial Xerus or Ubuntu 14.04 Trusty Tahir. [Ubuntu downloads can be found here](https://www.ubuntu.com/download/desktop).
-* If using a Virtual Machine to install Ubuntu, use the following configuration as minimum:
-  * 2 CPU
-  * 2 GB system memory
-  * 25 GB of free hard drive space
+There are a few frameworks/libraries used:
 
-  The Udacity provided virtual machine has ROS and Dataspeed DBW already installed, so you can skip the next two steps if you are using this.
 
-* Follow these instructions to install ROS
-  * [ROS Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) if you have Ubuntu 16.04.
-  * [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu) if you have Ubuntu 14.04.
-* [Dataspeed DBW](https://bitbucket.org/DataspeedInc/dbw_mkz_ros)
-  * Use this option to install the SDK on a workstation that already has ROS installed: [One Line SDK Install (binary)](https://bitbucket.org/DataspeedInc/dbw_mkz_ros/src/81e63fcc335d7b64139d7482017d6a97b405e250/ROS_SETUP.md?fileviewer=file-view-default)
-* Download the [Udacity Simulator](https://github.com/udacity/CarND-Capstone/releases).
+- ROS - provides scaffolding and messaging middleware for integration
+- Tensorflow - Deep learning framework for running machine learning model
+- Keras - High level machine learning library using `Tensorflow` as the backend
+- Autoware Waypoint Follower 
+- Dataspeed DBW - controls actuation on the car
 
-### Docker Installation
-[Install Docker](https://docs.docker.com/engine/installation/)
+# Light Detection
 
-Build the docker container
-```bash
-docker build . -t capstone
-```
+## Detection Approach
 
-Run the docker file
-```bash
-docker run -p 4567:4567 -v $PWD:/capstone -v /tmp/log:/root/.ros/ --rm -it capstone
-```
+Our approach was to treat this as a classification problem. Are there red lights in the RGB capture
+or not. However, we decided not to use binary classification, we used 4 classes to allow other 
+sub-systems to make more intelligent decisions.
 
-### Port Forwarding
-To set up port forwarding, please refer to the [instructions from term 2](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/16cf4a78-4fc7-49e1-8621-3450ca938b77)
+## Classes
 
-### Usage
+- Red Light
+- Yellow Light
+- Green Light
+- Unknown
 
-1. Clone the project repository
-```bash
-git clone https://github.com/udacity/CarND-Capstone.git
-```
+## Model
 
-2. Install python dependencies
-```bash
-cd CarND-Capstone
-pip install -r requirements.txt
-```
-3. Make and run styx
-```bash
-cd ros
-catkin_make
-source devel/setup.sh
-roslaunch launch/styx.launch
-```
-4. Run the simulator
+We fine-tuned `MobileNet` to our dataset pulled from the `Keras Applications` providing our own top. 
 
-### Real world testing
-1. Download [training bag](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/traffic_light_bag_file.zip) that was recorded on the Udacity self-driving car.
-2. Unzip the file
-```bash
-unzip traffic_light_bag_file.zip
-```
-3. Play the bag file
-```bash
-rosbag play -l traffic_light_bag_file/traffic_light_training.bag
-```
-4. Launch your project in site mode
-```bash
-cd CarND-Capstone/ros
-roslaunch launch/site.launch
-```
-5. Confirm that traffic light detection works on real life images
+To prevent over-fitting we used image flipping and L2 bias regularization. 
+
+# Bridge
+
+The provided web-socket bridge did not work very well when the camera was on. When converting the 
+base64 image into a cv2 image it caused some blocking in the event handler. This processing was moved
+and processed in a `ROS` node. However, on powerful systems this may not cause a problem.
+
+# Waypoint Publishing
+
+The future waypoints were published with desired speed which included when we had to stop when a red light
+is detected. The `Autoware` follower had to be updated to always update to keep the car from diverging
+from the line.
+
+# Team
+
+- Thomas Milas - itpro1994@gmail.com
+- Yunying-Chen - yunyingchen.yc@gmail.com
+- Tianzhi Yang - tianzhi.yang@gmail.com
